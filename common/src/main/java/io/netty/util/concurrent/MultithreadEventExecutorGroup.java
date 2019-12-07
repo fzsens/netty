@@ -59,6 +59,10 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
     }
 
     /**
+     *
+     * 这个方法会创建多个 EventLoop，每一个EventLoop 包含一个 Selector，当Acceptor 接收请求后，投递给 EventLoopGroup 处理
+     * ，实际上是发送给 EventLoop，EventLoop 会处理这个Event 后续的事件，这些都是在同一个EventLoop 中处理的
+     *
      * Create a new instance.
      *
      * @param nThreads          the number of threads that will be used by this instance.
