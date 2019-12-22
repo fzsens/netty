@@ -19,6 +19,7 @@ package io.netty.channel;
 import io.netty.util.internal.StringUtil;
 
 /**
+ * 使用泛型+反射+工厂模式实现模型切换
  * A {@link ChannelFactory} that instantiates a new {@link Channel} by invoking its default constructor reflectively.
  */
 public class ReflectiveChannelFactory<T extends Channel> implements ChannelFactory<T> {
@@ -32,9 +33,11 @@ public class ReflectiveChannelFactory<T extends Channel> implements ChannelFacto
         this.clazz = clazz;
     }
 
+
     @Override
     public T newChannel() {
         try {
+            // 无参数构造函数
             return clazz.getConstructor().newInstance();
         } catch (Throwable t) {
             throw new ChannelException("Unable to create Channel from class " + clazz, t);
