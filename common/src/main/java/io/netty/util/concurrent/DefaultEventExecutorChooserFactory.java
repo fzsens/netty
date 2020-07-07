@@ -53,6 +53,7 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
 
         @Override
         public EventExecutor next() {
+            // 如果 executors 总数是 2 的幂次方（2\4\8\16） 才使用，& 的效率更高
             return executors[idx.getAndIncrement() & executors.length - 1];
         }
     }
@@ -67,6 +68,7 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
 
         @Override
         public EventExecutor next() {
+            // sub-reactor 中选择一个线程来绑定
             return executors[Math.abs(idx.getAndIncrement() % executors.length)];
         }
     }
