@@ -49,6 +49,7 @@ public final class EchoServer {
         }
 
         // Configure the server.
+        // Reactor 模式，两个独立的 EventLoopGroup ,一个 Boss（main-reactor） 多个 Worker(sub-reactor)
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
