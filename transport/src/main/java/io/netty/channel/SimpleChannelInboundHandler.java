@@ -47,6 +47,9 @@ import io.netty.util.internal.TypeParameterMatcher;
  */
 public abstract class SimpleChannelInboundHandler<I> extends ChannelInboundHandlerAdapter {
 
+    /**
+     * 获取处理器要处理的消息类型（ChannelHandler 中的泛型）
+     */
     private final TypeParameterMatcher matcher;
     private final boolean autoRelease;
 

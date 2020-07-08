@@ -425,6 +425,9 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
                 }
 
                 int oldInputLength = in.readableBytes();
+                /*
+                 * template pattern 调用具体的 decode 方法向 out<List> 中添加 msg
+                 */
                 decodeRemovalReentryProtection(ctx, in, out);
 
                 // Check if this handler was removed before continuing the loop.

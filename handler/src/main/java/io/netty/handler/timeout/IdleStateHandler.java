@@ -305,6 +305,9 @@ public class IdleStateHandler extends ChannelDuplexHandler {
         }
     }
 
+    /**
+     * 连接创建之后，启动定时器进行监听
+     */
     private void initialize(ChannelHandlerContext ctx) {
         // Avoid the case where destroy() is called before scheduling timeouts.
         // See: https://github.com/netty/netty/issues/143
@@ -368,6 +371,7 @@ public class IdleStateHandler extends ChannelDuplexHandler {
      * {@link ChannelHandlerContext#fireUserEventTriggered(Object)}.
      */
     protected void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt) throws Exception {
+        // 手动触发
         ctx.fireUserEventTriggered(evt);
     }
 

@@ -363,6 +363,7 @@ public abstract class ReplayingDecoder<S> extends ByteToMessageDecoder {
                 S oldState = state;
                 int oldInputLength = in.readableBytes();
                 try {
+                    // 持续调用
                     decodeRemovalReentryProtection(ctx, replayable, out);
 
                     // Check if this handler was removed before continuing the loop.

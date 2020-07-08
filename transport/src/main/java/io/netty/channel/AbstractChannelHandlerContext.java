@@ -39,6 +39,9 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         implements ChannelHandlerContext, ResourceLeakHint {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(AbstractChannelHandlerContext.class);
+    /**
+     * 上下文形成一个链状的结构
+     */
     volatile AbstractChannelHandlerContext next;
     volatile AbstractChannelHandlerContext prev;
 
@@ -809,6 +812,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         AbstractChannelHandlerContext next = findContextOutbound();
         final Object m = pipeline.touch(msg, next);
         EventExecutor executor = next.executor();
+        // eventloop 的单线程特征，如果是启动了线程池来执行写入，则会转换为 Task 添加到 eventLoop 的 executor 中
         if (executor.inEventLoop()) {
             if (flush) {
                 next.invokeWriteAndFlush(m, promise);

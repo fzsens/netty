@@ -17,6 +17,9 @@ package io.netty.channel;
 
 import io.netty.util.concurrent.EventExecutor;
 
+/**
+ * 每一个 handler 对应一个 context，而不是一个请求对应一个 context，不同于 SessionContext 这种会话上下文的概念
+ */
 final class DefaultChannelHandlerContext extends AbstractChannelHandlerContext {
 
     private final ChannelHandler handler;

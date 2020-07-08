@@ -65,7 +65,10 @@ public final class EchoServer {
                          p.addLast(sslCtx.newHandler(ch.alloc()));
                      }
                      //p.addLast(new LoggingHandler(LogLevel.INFO));
+                     // 头 1
                      p.addLast(new EchoServerHandler());
+                     // 头 2
+                     p.addLast(new EchoServerHandler2());
                  }
              });
 
