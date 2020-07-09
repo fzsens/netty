@@ -251,6 +251,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
     @Override
     public ChannelFuture bind(SocketAddress localAddress, ChannelPromise promise) {
+        logger.info("会从头开始调用 pipeline 的bind 经过所有的 handler ");
         return pipeline.bind(localAddress, promise);
     }
 
@@ -281,6 +282,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
     @Override
     public Channel read() {
+        logger.info("channel 的 read 方法被调用，还是会经过 pipeline");
         pipeline.read();
         return this;
     }
@@ -471,11 +473,13 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
 
             AbstractChannel.this.eventLoop = eventLoop;
-
+            logger.info("channel 开始执行注册，首先判断是不是再 EventLoop 线程中进行注册，如果是启动线程（main）会被投递到 EventLoop 的线程任务中");
             if (eventLoop.inEventLoop()) {
+                logger.info("是在 eventloop 中进行注册");
                 register0(promise);
             } else {
                 try {
+                    logger.info("投递到 eventloop 的任务队列中");
                     eventLoop.execute(new Runnable() {
                         @Override
                         public void run() {
@@ -495,6 +499,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
         private void register0(ChannelPromise promise) {
             try {
+                logger.info("执行 channel 的 register 注册，还是使用模板方法 doRegister 主要是为了 OCP ");
                 // check if the channel is still open as it could be closed in the mean time when the register
                 // call was outside of the eventLoop
                 if (!promise.setUncancellable() || !ensureOpen(promise)) {
@@ -508,8 +513,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
                 pipeline.invokeHandlerAddedIfNeeded();
-
+                logger.info("通知回调的 promise 注册成功 ");
                 safeSetSuccess(promise);
+                logger.info("通知之后，会将 regFuture 设置为 isDone，通知 pipeline 中的 handler channel 注册成功");
                 pipeline.fireChannelRegistered();
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
                 // multiple channel actives if the channel is deregistered and re-registered.
@@ -555,6 +561,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
             boolean wasActive = isActive();
             try {
+                logger.info("执行 java ServerSocketChannel 的绑定");
                 doBind(localAddress);
             } catch (Throwable t) {
                 safeSetFailure(promise, t);
@@ -562,10 +569,12 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 return;
             }
 
+            logger.info("绑定成功之后就进行激活");
             if (!wasActive && isActive()) {
                 invokeLater(new Runnable() {
                     @Override
                     public void run() {
+                        logger.info("激活会调用 pipeline 中的 active 行为");
                         pipeline.fireChannelActive();
                     }
                 });

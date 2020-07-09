@@ -39,7 +39,9 @@ public class WorldClockClientInitializer extends ChannelInitializer<SocketChanne
             p.addLast(sslCtx.newHandler(ch.alloc(), WorldClockClient.HOST, WorldClockClient.PORT));
         }
 
+        // 一次解码器，处理半包，粘包问题
         p.addLast(new ProtobufVarint32FrameDecoder());
+        // message to message 的逻辑
         p.addLast(new ProtobufDecoder(WorldClockProtocol.LocalTimes.getDefaultInstance()));
 
         p.addLast(new ProtobufVarint32LengthFieldPrepender());
@@ -48,3 +50,4 @@ public class WorldClockClientInitializer extends ChannelInitializer<SocketChanne
         p.addLast(new WorldClockClientHandler());
     }
 }
+

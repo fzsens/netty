@@ -139,6 +139,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
 
     @Override
     void init(Channel channel) throws Exception {
+        logger.info("配置 chnanel 的参数");
         final Map<ChannelOption<?>, Object> options = options0();
         synchronized (options) {
             setChannelOptions(channel, options, logger);
@@ -167,6 +168,9 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             currentChildAttrs = childAttrs.entrySet().toArray(newAttrArray(childAttrs.size()));
         }
 
+        logger.info("使用一次性的 ChannelInitializer 添加 ServerBootstrapAcceptor ");
+        // ChannelInitializer 这种 Handler 只会执行一次
+        // ServerBootstrapAcceptor 主要是在接受(accept)连接之后，对连接进行一些初始化操作，并将其注册到 childGroup 中的 eventloop
         p.addLast(new ChannelInitializer<Channel>() {
             @Override
             public void initChannel(final Channel ch) throws Exception {

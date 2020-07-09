@@ -1355,6 +1355,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         public void bind(
                 ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise)
                 throws Exception {
+            logger.info("对于启动，跳过其他的 handler 直接到达 headContext 进行启动");
             unsafe.bind(localAddress, promise);
         }
 
@@ -1383,6 +1384,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         public void read(ChannelHandlerContext ctx) {
+            logger.info("直接来到 head 的 read 方法");
             unsafe.beginRead();
         }
 
@@ -1420,7 +1422,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
             ctx.fireChannelActive();
-
+            logger.info("channel 已经被激活了，如果是 serverSocketChannel 就是已经被绑定了, 如果是 socketChannel 则表示连接创建了");
+            logger.info("这里就需要注册监听 ACCEPT 事件，或者读事件，则是一个关键点");
             readIfIsAutoRead();
         }
 
@@ -1437,12 +1440,12 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         @Override
         public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
             ctx.fireChannelReadComplete();
-
             readIfIsAutoRead();
         }
 
         private void readIfIsAutoRead() {
             if (channel.config().isAutoRead()) {
+                logger.info("如果 channel 中配置了 autoRead 那么 channel 的read 方法会被调用");
                 channel.read();
             }
         }

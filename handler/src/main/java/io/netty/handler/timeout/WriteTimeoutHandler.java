@@ -126,6 +126,9 @@ public class WriteTimeoutHandler extends ChannelOutboundHandlerAdapter {
         }
     }
 
+    /**
+     * 没有在一定的时间内完成写入操作
+     */
     private void scheduleTimeout(final ChannelHandlerContext ctx, final ChannelPromise promise) {
         // Schedule a timeout.
         final WriteTimeoutTask task = new WriteTimeoutTask(ctx, promise);

@@ -26,6 +26,7 @@ import io.netty.channel.DefaultChannelPromise;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ReflectiveChannelFactory;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.internal.SocketUtils;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.EventExecutor;
@@ -33,6 +34,7 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.internal.StringUtil;
 import io.netty.util.internal.logging.InternalLogger;
 
+import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -48,6 +50,8 @@ import java.util.Map;
  * transports such as datagram (UDP).</p>
  */
 public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C extends Channel> implements Cloneable {
+
+    private static final InternalLogger logger = InternalLoggerFactory.getInstance(AbstractBootstrap.class);
 
     volatile EventLoopGroup group;
     @SuppressWarnings("deprecation")
@@ -282,12 +286,14 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
      * 绑定端口，对于服务端而言，只会绑定一个端口因此只会用到一个线程，而不会用到线程组
      */
     private ChannelFuture doBind(final SocketAddress localAddress) {
+        logger.info("准备好数据之后，开始绑定端口");
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
             return regFuture;
         }
 
+        logger.info("注册是异步在 EventLoop 中执行的，根据返回的 regFuture 是否完成，选择同步 doBind0 或者回调 doBind0 ");
         if (regFuture.isDone()) {
             // At this point we know that the registration was complete and successful.
             ChannelPromise promise = channel.newPromise();
@@ -320,6 +326,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
+            logger.info("使用反射工厂，生成 NioServerSocketChannel 实例");
             channel = channelFactory.newChannel();
             init(channel);
         } catch (Throwable t) {
@@ -335,6 +342,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         // 开始 register
         // 拿到 group（main-reactor）将 channel，在服务端就是 ServerSocketChannel 绑定到主 reactor
         // ServerSocketChannel 就可以创建子 SocketChannel
+        logger.info("开始注册 channel ");
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {
@@ -361,7 +369,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     private static void doBind0(
             final ChannelFuture regFuture, final Channel channel,
             final SocketAddress localAddress, final ChannelPromise promise) {
-
+        logger.info("doBind0 还是一样的套路，在 eventloop 中执行 bind 操作");
         // This method is invoked before channelRegistered() is triggered.  Give user handlers a chance to set up
         // the pipeline in its channelRegistered() implementation.
         channel.eventLoop().execute(new Runnable() {

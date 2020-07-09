@@ -55,6 +55,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
             new ClosedChannelException(), AbstractNioChannel.class, "doClose()");
 
     private final SelectableChannel ch;
+    // 如果设置了 autoRead 之后，首先需要关心的 ops ，针对服务端和客户端是不同的
     protected final int readInterestOp;
     volatile SelectionKey selectionKey;
     boolean readPending;
@@ -383,6 +384,8 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         boolean selected = false;
         for (;;) {
             try {
+                logger.info("读取 channel 绑定的 Java ServerSocketChannel 或者 SocketChannel ，绑定到对应 eventloop 中的 selector");
+                logger.info("因为此时还没有绑定，只是注册，因此 ops 是 0 这点需要注意， 并将将自己作为 selectionkey 的 attachment 添加");
                 selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
                 return;
             } catch (CancelledKeyException e) {
@@ -414,11 +417,13 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         }
 
         readPending = true;
-
         final int interestOps = selectionKey.interestOps();
+        logger.info("获取当前监听的 ops " + interestOps);
+        logger.info("当前 channel 关心的 ops 是 " + readInterestOp + " 对于 NioServerScoketChannel 来说就是 16 也就是 ACCEPT ，SocketChannel 则是 READ");
         if ((interestOps & readInterestOp) == 0) {
             selectionKey.interestOps(interestOps | readInterestOp);
         }
+        logger.info("到这里 Channel 主要的逻辑就启动完成");
     }
 
     /**

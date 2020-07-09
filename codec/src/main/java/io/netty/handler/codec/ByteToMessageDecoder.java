@@ -115,6 +115,7 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
                 buffer.writeBytes(in);
                 in.release();
             } else {
+                // 实现一个对外的视图，避免了内存的复制
                 CompositeByteBuf composite;
                 if (cumulation instanceof CompositeByteBuf) {
                     composite = (CompositeByteBuf) cumulation;
@@ -133,6 +134,7 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
     private static final byte STATE_CALLING_CHILD_DECODE = 1;
     private static final byte STATE_HANDLER_REMOVED_PENDING = 2;
 
+    // 累计在内存中的消息字节余量
     ByteBuf cumulation;
     private Cumulator cumulator = MERGE_CUMULATOR;
     private boolean singleDecode;
@@ -260,6 +262,7 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
                 if (first) {
                     cumulation = data;
                 } else {
+                    // 追加到消息余量中
                     cumulation = cumulator.cumulate(ctx.alloc(), cumulation, data);
                 }
                 callDecode(ctx, cumulation, out);
