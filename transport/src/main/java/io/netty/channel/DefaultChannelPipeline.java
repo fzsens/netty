@@ -1316,6 +1316,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            // 走到这里说明没有 handler 处理了这个消息
             onUnhandledInboundMessage(msg);
         }
 
@@ -1390,6 +1391,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+            logger.info("通过 unsafe 写入消息");
             unsafe.write(msg, promise);
         }
 
@@ -1434,6 +1436,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            logger.info("执行使用 ctx.fireChannelRead 调用下一个处理 handler");
             ctx.fireChannelRead(msg);
         }
 

@@ -337,6 +337,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
         }
         final int interestOps = key.interestOps();
         if ((interestOps & SelectionKey.OP_WRITE) == 0) {
+            // 注册一个 op_write
             key.interestOps(interestOps | SelectionKey.OP_WRITE);
         }
     }

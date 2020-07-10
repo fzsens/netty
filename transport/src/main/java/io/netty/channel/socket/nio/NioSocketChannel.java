@@ -363,6 +363,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
         // SO_SNDBUF (and other characteristics that determine how much data can be written at once) so we should try
         // make a best effort to adjust as OS behavior changes.
         if (attempted == written) {
+            // 如果写入的量和尝试写入的量相同，尝试扩大写入量
             if (attempted << 1 > oldMaxBytesPerGatheringWrite) {
                 ((NioSocketChannelConfig) config).setMaxBytesPerGatheringWrite(attempted << 1);
             }
@@ -402,11 +403,14 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
                     ByteBuffer buffer = nioBuffers[0];
                     int attemptedBytes = buffer.remaining();
                     final int localWrittenBytes = ch.write(buffer);
+                    // 如果 localWrittenBytes <= 0 则表示网卡的缓冲区中没有可写入的空间，会再次注册 write ops 等待下次执行写入
                     if (localWrittenBytes <= 0) {
+                        logger.info("缓冲区无法写入，注册一个 写 ops 等待下次写入");
                         incompleteWrite(true);
                         return;
                     }
                     adjustMaxBytesPerGatheringWrite(attemptedBytes, localWrittenBytes, maxBytesPerGatheringWrite);
+                    // 写入成功之后，要 skip 部分
                     in.removeBytes(localWrittenBytes);
                     --writeSpinCount;
                     break;
@@ -416,6 +420,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
                     // to check if the total size of all the buffers is non-zero.
                     // We limit the max amount to int above so cast is safe
                     long attemptedBytes = in.nioBufferSize();
+                    // 批量写可以进行优化
                     final long localWrittenBytes = ch.write(nioBuffers, 0, nioBufferCnt);
                     if (localWrittenBytes <= 0) {
                         incompleteWrite(true);
@@ -429,8 +434,9 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
                     break;
                 }
             }
+            // 连续写入 16 次
         } while (writeSpinCount > 0);
-
+        // 写了 16 次没有写完成，直接 schedule 一个 flushTask 再次尝试写入
         incompleteWrite(writeSpinCount < 0);
     }
 

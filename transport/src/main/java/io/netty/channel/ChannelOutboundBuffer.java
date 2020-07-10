@@ -111,6 +111,7 @@ public final class ChannelOutboundBuffer {
      */
     public void addMessage(Object msg, int size, ChannelPromise promise) {
         Entry entry = Entry.newInstance(msg, size, total(msg), promise);
+        logger.info("追加消息到队尾 ");
         if (tailEntry == null) {
             flushedEntry = null;
         } else {
@@ -169,9 +170,9 @@ public final class ChannelOutboundBuffer {
         if (size == 0) {
             return;
         }
-
         long newWriteBufferSize = TOTAL_PENDING_SIZE_UPDATER.addAndGet(this, size);
         if (newWriteBufferSize > channel.config().getWriteBufferHighWaterMark()) {
+            logger.info("缓存的数据太多，更改数据状态为不可写，交给用户判断");
             setUnwritable(invokeLater);
         }
     }
@@ -337,6 +338,7 @@ public final class ChannelOutboundBuffer {
                 }
                 remove();
             } else { // readableBytes > writtenBytes
+                // 标记写入的进度
                 if (writtenBytes != 0) {
                     buf.readerIndex(readerIndex + (int) writtenBytes);
                     progress(writtenBytes);
