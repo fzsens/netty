@@ -537,6 +537,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     @Override
     public Future<?> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit) {
+        logger.info("优雅关闭");
         if (quietPeriod < 0) {
             throw new IllegalArgumentException("quietPeriod: " + quietPeriod + " (expected >= 0)");
         }
@@ -567,8 +568,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
             } else {
                 switch (oldState) {
                     case ST_NOT_STARTED:
-                    case ST_STARTED:
-                        newState = ST_SHUTTING_DOWN;
+                    case ST_STARTED:// 2
+                        logger.info("修改状态为关闭");
+                        newState = ST_SHUTTING_DOWN; // 3
                         break;
                     default:
                         newState = oldState;
@@ -684,6 +686,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      * Confirm that the shutdown if the instance should be done now!
      */
     protected boolean confirmShutdown() {
+        logger.info("优雅关闭，留一定的时间让 task 可以执行");
         if (!isShuttingDown()) {
             return false;
         }
@@ -700,6 +703,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
         if (runAllTasks() || runShutdownHooks()) {
             if (isShutdown()) {
+                // 全部执行完，返回 true
                 // Executor shut down - no new tasks anymore.
                 return true;
             }
