@@ -645,7 +645,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             // Process OP_WRITE first as we may be able to write some queued buffers and so free memory.
             if ((readyOps & SelectionKey.OP_WRITE) != 0) {
                 // Call forceFlush which will also take care of clear the OP_WRITE once there is nothing left to write
-                logger.info("缓冲区可写，调用 channel 的 forceFlush 方法");
+                logger.info("缓冲区可写，调用 channel 的 forceFlush 方法"+ " OP_WRITE 的意思不是有数据可写，而是可以写进去了，因此正常情况下不需要注册，否则会重复触发");
                 ch.unsafe().forceFlush();
             }
 
