@@ -335,6 +335,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
     @Override
     protected void doClose() throws Exception {
         super.doClose();
+        logger.info("调用 javaChannel 的 close 方法");
         javaChannel().close();
     }
 
@@ -455,6 +456,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
                     // SO_LINGER handling.
                     // See https://github.com/netty/netty/issues/4449
                     doDeregister();
+                    // 为了避免堵塞 eventLoop 其他 Channel 的操作，返回一个全局的 Executor
                     return GlobalEventExecutor.INSTANCE;
                 }
             } catch (Throwable ignore) {

@@ -105,6 +105,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
                     shutdownInput();
                     pipeline.fireUserEventTriggered(ChannelInputShutdownEvent.INSTANCE);
                 } else {
+                    logger.info("执行 close");
                     close(voidPromise());
                 }
             } else {
@@ -127,6 +128,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             pipeline.fireChannelReadComplete();
             pipeline.fireExceptionCaught(cause);
             if (close || cause instanceof IOException) {
+                logger.info("处理非正常关闭");
                 closeOnRead(pipeline);
             }
         }
@@ -152,6 +154,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
                     byteBuf = allocHandle.allocate(allocator);
                     allocHandle.lastBytesRead(doReadBytes(byteBuf));
                     if (allocHandle.lastBytesRead() <= 0) {
+                        logger.info("读取到的内容小于 0 进入关闭逻辑，读取到 " + allocHandle.lastBytesRead());
                         // nothing was read. release the buffer.
                         byteBuf.release();
                         byteBuf = null;
@@ -176,6 +179,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
                 pipeline.fireChannelReadComplete();
 
                 if (close) {
+                    // 关闭
                     closeOnRead(pipeline);
                 }
             } catch (Throwable t) {

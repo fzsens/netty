@@ -653,6 +653,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             // to a spin loop
             if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
                 logger.info("accept | read 调用的是 unsafe.read 贯穿整个 channel pipeline ");
+                logger.info("channel 的关闭，也是一个读事件，但是读取到的内容是 -1");
                 unsafe.read();
             }
         } catch (CancelledKeyException ignored) {

@@ -721,9 +721,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
             final boolean wasActive = isActive();
             final ChannelOutboundBuffer outboundBuffer = this.outboundBuffer;
+            logger.info("关闭 outboundBuffer 不允许再添加 message ");
             this.outboundBuffer = null; // Disallow adding any messages and flushes to outboundBuffer.
             Executor closeExecutor = prepareToClose();
             if (closeExecutor != null) {
+                logger.info("在一个独立的 Executor 运行关闭操作，避免影响在 EventLoop 中的其他 channel 的正常执行");
                 closeExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
@@ -825,6 +827,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             invokeLater(new Runnable() {
                 @Override
                 public void run() {
+                    logger.info("执行回调，完成其他的清理工作");
                     try {
                         doDeregister();
                     } catch (Throwable t) {

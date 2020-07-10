@@ -405,6 +405,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
 
     @Override
     protected void doDeregister() throws Exception {
+        logger.info("调用 selectionnKey 的 cancel 方法，这样对应的 selector 就不会再触发这些 channel 的事件");
         eventLoop().cancel(selectionKey());
     }
 
