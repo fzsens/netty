@@ -22,6 +22,7 @@ import java.nio.channels.spi.SelectorProvider;
 import java.util.Set;
 
 final class SelectedSelectionKeySetSelector extends Selector {
+    // 利用了 Selector 本身的机制，在 select 到值之后，会个体 selectionKeys 赋值
     private final SelectedSelectionKeySet selectionKeys;
     private final Selector delegate;
 

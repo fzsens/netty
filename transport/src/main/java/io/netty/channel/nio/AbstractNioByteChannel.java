@@ -31,6 +31,8 @@ import io.netty.channel.socket.ChannelInputShutdownReadComplete;
 import io.netty.channel.socket.SocketChannelConfig;
 import io.netty.util.internal.StringUtil;
 
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.io.IOException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
@@ -95,6 +97,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
     }
 
     protected class NioByteUnsafe extends AbstractNioUnsafe {
+        private final InternalLogger logger = InternalLoggerFactory.getInstance(NioByteUnsafe.class);
 
         private void closeOnRead(ChannelPipeline pipeline) {
             if (!isInputShutdown0()) {
@@ -130,6 +133,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
 
         @Override
         public final void read() {
+            logger.info("NioByteUnsafe 的 read 方法 ");
             final ChannelConfig config = config();
             if (shouldBreakReadReady(config)) {
                 clearReadPending();
@@ -160,6 +164,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
 
                     allocHandle.incMessagesRead(1);
                     readPending = false;
+                    logger.info("执行 pipeline 的 fireChannelRead 方法 ");
                     pipeline.fireChannelRead(byteBuf);
                     byteBuf = null;
                 } while (allocHandle.continueReading());

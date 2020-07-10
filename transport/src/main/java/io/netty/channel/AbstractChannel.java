@@ -38,6 +38,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 
 /**
+ * channel 中的很多方法，比如 read write 等都会通过 pipeline 在整个 Handler 处理链路中传递，最终会到 HeadContext 这个末端类又会触发回调到 Channel 自身，
  * A skeletal {@link Channel} implementation.
  */
 public abstract class AbstractChannel extends DefaultAttributeMap implements Channel {
@@ -519,7 +520,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 pipeline.fireChannelRegistered();
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
                 // multiple channel actives if the channel is deregistered and re-registered.
+                logger.info("如果是 ServerSocketChannel 接收连接，没有 bind 之前，还不是 active 的，如果是 SocketChannel 那么连接创建后就是 Active 的");
                 if (isActive()) {
+                    logger.info("连接处于活动状态");
                     if (firstRegistration) {
                         pipeline.fireChannelActive();
                     } else if (config().isAutoRead()) {

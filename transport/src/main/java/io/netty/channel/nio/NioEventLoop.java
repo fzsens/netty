@@ -404,12 +404,14 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     @Override
     // 死循环监听，处理事件
     protected void run() {
+        logger.info("在 NioEventLoop 中循环处理事件");
         for (;;) {
             try {
                 switch (selectStrategy.calculateStrategy(selectNowSupplier, hasTasks())) {
                     case SelectStrategy.CONTINUE:
                         continue;
                     case SelectStrategy.SELECT:
+                        logger.info("轮询 select");
                         select(wakenUp.getAndSet(false));
 
                         // 'wakenUp.compareAndSet(false, true)' is always evaluated
@@ -497,6 +499,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     }
 
     private void processSelectedKeys() {
+        logger.info("处理轮询到的 SelctionKeys ");
         if (selectedKeys != null) {
             processSelectedKeysOptimized();
         } else {
@@ -572,14 +575,14 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     }
 
     private void processSelectedKeysOptimized() {
+        logger.info("使用优化后的 selectionKey 处理方法 selectedKey 的大小为" + selectedKeys.size );
         for (int i = 0; i < selectedKeys.size; ++i) {
             final SelectionKey k = selectedKeys.keys[i];
             // null out entry in the array to allow to have it GC'ed once the Channel close
             // See https://github.com/netty/netty/issues/2363
             selectedKeys.keys[i] = null;
-
             final Object a = k.attachment();
-
+            logger.info("当前处理的 selectionKey 的 attach 是 " + a.getClass());
             if (a instanceof AbstractNioChannel) {
                 processSelectedKey(k, (AbstractNioChannel) a);
             } else {
@@ -601,6 +604,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
     private void processSelectedKey(SelectionKey k, AbstractNioChannel ch) {
         final AbstractNioChannel.NioUnsafe unsafe = ch.unsafe();
+        logger.info("获取 channel 的 unsafe 引用，进入处理，这里的 unsafe 实例是 " + unsafe.getClass() );
         if (!k.isValid()) {
             final EventLoop eventLoop;
             try {
@@ -625,6 +629,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
         try {
             int readyOps = k.readyOps();
+            logger.info("当前的 key 已经就绪的 ops 是" + readyOps);
             // We first need to call finishConnect() before try to trigger a read(...) or write(...) as otherwise
             // the NIO JDK channel implementation may throw a NotYetConnectedException.
             if ((readyOps & SelectionKey.OP_CONNECT) != 0) {
@@ -646,6 +651,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             // Also check for readOps of 0 to workaround possible JDK bug which may otherwise lead
             // to a spin loop
             if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
+                logger.info("accept | read 调用的是 unsafe.read 贯穿整个 channel pipeline ");
                 unsafe.read();
             }
         } catch (CancelledKeyException ignored) {

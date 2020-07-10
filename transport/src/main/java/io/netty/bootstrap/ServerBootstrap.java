@@ -248,6 +248,9 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             final Channel child = (Channel) msg;
 
+            logger.info(" msg 就是接收到的链接了 " + child);
+
+            logger.info("根据初始化时候的 childHandler 等，对 SocketChannel 进行设置");
             child.pipeline().addLast(childHandler);
 
             setChannelOptions(child, childOptions, logger);
@@ -258,6 +261,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
 
             try {
                 // 将接收到到的 SocketChannel 绑定到 ChildGroup 中也就是从 reactor
+                logger.info("最后将 Channel 注册到 childGroup 中的 EventLoop 中进行后续的处理");
                 childGroup.register(child).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {

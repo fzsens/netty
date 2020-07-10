@@ -22,6 +22,8 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.RecvByteBufAllocator;
 import io.netty.channel.ServerChannel;
 
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.io.IOException;
 import java.net.PortUnreachableException;
 import java.nio.channels.SelectableChannel;
@@ -56,6 +58,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
     }
 
     private final class NioMessageUnsafe extends AbstractNioUnsafe {
+        private final InternalLogger logger = InternalLoggerFactory.getInstance(NioEventLoop.class);
 
         private final List<Object> readBuf = new ArrayList<Object>();
 
@@ -72,6 +75,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             try {
                 try {
                     do {
+                        logger.info("unsafe 都是调用外部的 channel 这里掉哟个 doReadMessages 得到 readBuf");
                         int localRead = doReadMessages(readBuf);
                         if (localRead == 0) {
                             break;
@@ -80,7 +84,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                             closed = true;
                             break;
                         }
-
+                        // 累计计数
                         allocHandle.incMessagesRead(localRead);
                     } while (allocHandle.continueReading());
                 } catch (Throwable t) {
@@ -90,6 +94,8 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                 int size = readBuf.size();
                 for (int i = 0; i < size; i ++) {
                     readPending = false;
+                    logger.info("触发 pipeline 的 fireChannelRead 并且将 readBuf 中的数据作为读入的参数设置进去 "  + readBuf.get(i).getClass());
+                    logger.info("对于 Server 端，读取到的就是 accept 到的 SocketChannel 最后较给 ServerBootstrapAcceptor 来处理 ");
                     pipeline.fireChannelRead(readBuf.get(i));
                 }
                 readBuf.clear();
