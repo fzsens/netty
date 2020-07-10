@@ -133,7 +133,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
 
         @Override
         public final void read() {
-            logger.info("NioByteUnsafe 的 read 方法 ");
+            logger.info("NioByteUnsafe 的 read 方法 , 这个 unsafe 方法用于读取数据（而不是创建链接）");
             final ChannelConfig config = config();
             if (shouldBreakReadReady(config)) {
                 clearReadPending();
@@ -148,6 +148,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             boolean close = false;
             try {
                 do {
+                    // 动态分配大小
                     byteBuf = allocHandle.allocate(allocator);
                     allocHandle.lastBytesRead(doReadBytes(byteBuf));
                     if (allocHandle.lastBytesRead() <= 0) {
@@ -164,12 +165,14 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
 
                     allocHandle.incMessagesRead(1);
                     readPending = false;
-                    logger.info("执行 pipeline 的 fireChannelRead 方法 ");
+                    logger.info("执行 pipeline 的 fireChannelRead 方法 , 并传入读取到的 byteBuf ");
                     pipeline.fireChannelRead(byteBuf);
+                    // 读取一次后将 byteBuf 设置为空，为下次读取准备， 也就是每次 fireChannelRead 读取的 ByteBuf 都是不一样的
                     byteBuf = null;
-                } while (allocHandle.continueReading());
+                } while (allocHandle.continueReading());// 判断是否要继续读，如果读满，并且小于 16 次就会继续读
 
                 allocHandle.readComplete();
+                logger.info("读取完成之后，调用 pipeline 的 fireChannelReadComplete 一次 read 事件会触发一次 complete ");
                 pipeline.fireChannelReadComplete();
 
                 if (close) {

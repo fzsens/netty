@@ -47,11 +47,12 @@ public class EchoClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         //ctx.write(msg);
+        ctx.channel().close();
     }
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
-       ctx.flush();
+       // ctx.flush();
     }
 
     @Override
